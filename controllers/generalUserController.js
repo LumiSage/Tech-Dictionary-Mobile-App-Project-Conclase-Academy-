@@ -1,5 +1,5 @@
 const Word = require('../models/word'); // Assuming you have a Word model
-const Request = require('../models/UserRequest'); // Assuming you have a Request model
+const UserRequest = require('../models/UserRequest'); // Assuming you have a Request model
 const logSearch = require('../utils/logSearch');
 const pool = require('../config/database');
 const AdminNotificationService = require('../services/adminNotificationService'); // Adjust the path as needed
@@ -28,8 +28,19 @@ exports.searchWords = async (req, res) => {
         `, [`%${query}%`]);
 
         if (searchResults.rows.length === 0) {
+            // If not found, search in the user_request table
+            const userRequestQuery = 'SELECT word, description FROM user_request WHERE LOWER(word) LIKE LOWER($1)';
+            const userRequestResult = await pool.query(userRequestQuery, [`%${query}%`]);
+
+            if (userRequestResult.rows.length > 0) {
+                // Word found in the user_request table
+                return res.status(200).json(userRequestResult.rows);
+            }
+
+            // No words found in both tables
             return res.status(404).json({ error: 'No words found matching the query' });
         }
+
 
         // Update search count for each matching word
         for (const word of searchResults.rows) {
@@ -89,9 +100,8 @@ exports.requestChangeToWord = async (req, res) => {
         // Insert user request into database
         const result = await UserRequest.create({
             word,
-            suggestion: `Update ${sectionToUpdate} for ${word}`,
-            status: 'Open',
-            created_at: new Date()
+            description: `Update ${sectionToUpdate} for ${word}`,
+            requested_by: 'Anonymous' // or any default value for requested_by
         });
 
         // Notify admins about the change request

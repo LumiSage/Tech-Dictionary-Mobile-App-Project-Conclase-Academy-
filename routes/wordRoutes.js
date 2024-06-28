@@ -35,8 +35,7 @@ router.get('/', wordController.getAllWords);
  *   post:
  *     summary: Add a new word
  *     tags: [Words]
- *     security:
- *       - bearerAuth: []
+ 
  *     requestBody:
  *       required: true
  *       content:
@@ -53,7 +52,7 @@ router.get('/', wordController.getAllWords);
  *       500:
  *         description: Some server error
  */
-router.post('/', authMiddleware.verifyToken, wordController.addWord);
+router.post('/',  wordController.addWord);
 
 /**
  * @swagger
@@ -87,8 +86,6 @@ router.get('/:id', wordController.getWordById);
  *   put:
  *     summary: Update a word by ID
  *     tags: [Words]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -114,7 +111,7 @@ router.get('/:id', wordController.getWordById);
  *       500:
  *         description: Some server error
  */
-router.put('/:id', authMiddleware.verifyToken,wordController.updateWord);
+router.put('/:id', wordController.updateWord);
 
 /**
  * @swagger
@@ -122,8 +119,6 @@ router.put('/:id', authMiddleware.verifyToken,wordController.updateWord);
  *   delete:
  *     summary: Delete a word by ID
  *     tags: [Words]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -139,6 +134,6 @@ router.put('/:id', authMiddleware.verifyToken,wordController.updateWord);
  *       500:
  *         description: Some server error
  */
-router.delete('/:id', authMiddleware.verifyToken, wordController.deleteWord);
+router.delete('/:id',  wordController.deleteWord);
 
 module.exports = router;

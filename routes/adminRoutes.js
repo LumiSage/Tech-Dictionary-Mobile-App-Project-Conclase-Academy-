@@ -45,6 +45,7 @@ const { sendInvitation } = require('../controllers/superAdminController');
  *         description: Error registering admin
  */
 router.post('/register-admin', superAdminController.registerAdmin);
+
 /**
  * @swagger
  * /api/superadmin/send-invitation:
@@ -68,6 +69,7 @@ router.post('/register-admin', superAdminController.registerAdmin);
  *         description: Error sending invitation
  */
 router.post('/send-invitation', superAdminController.sendInvitation);
+
 /**
  * @swagger
  * /admin/login:

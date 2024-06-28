@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = jwt.sign({ id: admin.id, role: admin.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: admin.id, role: admin.role }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
         res.status(200).json({ token, message: 'Login successful' });
     } catch (error) {
@@ -163,7 +163,7 @@ exports.updateRequestStatus = async (req, res) => {
 
     try {
         // Check if the request status exists first
-        const checkQuery = 'SELECT * FROM requeststatus WHERE id = $1;';
+        const checkQuery = 'SELECT * FROM user_request WHERE id = $1;';
         const checkResult = await pool.query(checkQuery, [id]);
 
         if (checkResult.rows.length === 0) {
@@ -172,8 +172,8 @@ exports.updateRequestStatus = async (req, res) => {
 
         // Update the request status
         const updateQuery = `
-            UPDATE requeststatus 
-            SET status = $1, updated_at = NOW() 
+            UPDATE user_request
+            SET status = $1, updatedat = NOW() 
             WHERE id = $2 
             RETURNING *;
         `;
