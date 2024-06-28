@@ -6,9 +6,9 @@ class UserRequest {
             const requested_at = new Date(); // Automatically set to current timestamp
             const query = `
                 INSERT INTO user_request (word, description, requested_by, requested_at, createdat, updatedat, status, approved)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING *`;
-            const values = [word, description, requested_by, new Date(), new Date(), 'pending', false]; // 'approved' initially set to false
+            const values = [word, description, requested_by, new Date(), new Date(), new Date(), 'pending', false]; // 'approved' initially set to false
             const result = await pool.query(query, values);
             return result.rows[0];
         } catch (error) {

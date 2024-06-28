@@ -1,11 +1,14 @@
 // adminNotificationService.js
 const UserRequest = require('../models/UserRequest');
+const Notification = require('../models/Notification');
+
 
 class AdminNotificationService {
     static async notifyChangeRequest(changeRequest) {
         try {
-            // Implement notification logic (e.g., send email, create notification in admin dashboard)
-            console.log(`Notifying admins about change request: ${changeRequest}`);
+            const message = `Change request for word: ${changeRequest.word} - ${changeRequest.description}`;
+            const notification = await Notification.create({ message });
+            console.log(`Notifying admins about change request: ${JSON.stringify(changeRequest, null, 2)}`);
             // Simulated asynchronous operation
             await new Promise(resolve => setTimeout(resolve, 1000));
             console.log('Admins notified successfully');

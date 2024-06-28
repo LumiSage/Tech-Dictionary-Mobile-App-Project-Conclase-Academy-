@@ -31,7 +31,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: superAdmin.id, email: superAdmin.email }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '2h',
     });
     res.json({ token });
   } catch (error) {
@@ -215,7 +215,29 @@ exports.approveWordRequest = async (req, res) => {
 
   try {
       if (approved) {
-          // Update user_request table if request is approved
+          // Check if the word already exists in the words table
+          const wordExistsQuery = 'SELECT * FROM words WHERE term = $1';
+          const existingWord = await pool.query(wordExistsQuery, [word]);
+
+          if (existingWord.rows.length > 0) {
+              // Word already exists, update its details
+              const updateWordQuery = `
+                  UPDATE words
+                  SET
+                      status = 'Active',  -- Adjust other fields as needed
+                      added_at = CURRENT_TIMESTAMP
+                  WHERE term = $1
+                  RETURNING *`;
+              await pool.query(updateWordQuery, [word]);
+          } else {
+              // Word does not exist, insert it into the words table
+              const insertWordQuery = `
+                  INSERT INTO words (term, class, meaning, pronunciation, history, example, status, lookUpTimes, added_at)
+                  VALUES ($1, '', '', '', '', '', 'Active', 0, CURRENT_TIMESTAMP) RETURNING *`;
+              await pool.query(insertWordQuery, [word]);
+          }
+
+          // Update user_request table with approval details
           const updateQuery = `
               UPDATE user_request
               SET
@@ -224,16 +246,10 @@ exports.approveWordRequest = async (req, res) => {
                   description = $3,
                   approved_by = $4,
                   approved_at = CURRENT_TIMESTAMP,
-                  status = 'Resolved', 
+                  status = 'Resolved'
               WHERE id = $5
               RETURNING *`;
           const result = await pool.query(updateQuery, [true, word, description, 'superadmin', requestId]);
-
-          // Insert the word into the words table
-          const insertWordQuery = `
-              INSERT INTO words (term, class, meaning, pronunciation, history, example, status, lookUpTimes, added_at)
-              VALUES ($1, '', '', '', '', '', 'Active', 0, CURRENT_TIMESTAMP) RETURNING *`;
-          await pool.query(insertWordQuery, [word]);
 
           res.status(201).json({ message: 'Word request approved and saved', savedRequest: result.rows[0] });
       } else {
@@ -244,9 +260,16 @@ exports.approveWordRequest = async (req, res) => {
       }
   } catch (error) {
       console.error('Error approving word request:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.code === '23505' && error.constraint === 'words_term_key') {
+          // Handle duplicate key error (word already exists)
+          res.status(400).json({ error: 'Word already exists in the dictionary' });
+      } else {
+          // Handle other errors
+          res.status(500).json({ error: 'Internal server error' });
+      }
   }
 };
+
 exports.updateWord = async (req, res) => {
   const { id } = req.params;
   const { term, wordClass, meaning, pronunciation, history, example } = req.body;

@@ -105,6 +105,7 @@ router.get('/recently-added', generalUserController.getRecentlyAddedWords);
  *         description: Internal server error
  */
 router.get('/words/:id', generalUserController.getWordDetails);
+
 /**
  * @swagger
  * /api/users/request-change:
